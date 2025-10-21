@@ -1,0 +1,65 @@
+version: 2
+models:
+  - name: fact_listing_month
+    columns:
+      - name: listing_id
+        tests: [not_null]
+      - name: month_date
+        tests: [not_null]
+      - name: host_month_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_host_month')
+                field: host_month_id
+      - name: property_key
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_property')
+                field: property_key
+          - dbt_utils.relationships_where:
+              arguments:
+                to: ref('dim_property')
+                field: property_key
+                from_condition: "property_key is not null"
+      - name: suburb_key
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_suburb')
+                field: suburb_key
+      - name: price
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "price is null or price >= 0"
+      - name: number_of_stays
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+      - name: estimated_revenue_active
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+    tests:    
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [listing_id, month_date]
+
+  - name: dim_property
+    columns:
+      - name: property_key
+        tests: [unique, not_null]
+
+  - name: dim_suburb
+    columns:
+      - name: suburb_key
+        tests: [unique, not_null]
+
+  - name: dim_host_month
+    columns: 
+      - name: host_month_id
+        tests: [unique, not_null]
