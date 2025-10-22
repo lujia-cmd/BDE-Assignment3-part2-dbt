@@ -11,19 +11,19 @@ models:
       - name: host_month_id
         tests:
           - relationships:
-              args:
+              arguments:
                 to: ref('dim_host_month')
                 field: host_month_id
       - name: property_month_id
         tests:
           - relationships:
-              args:
+              arguments:
                 to: ref('dim_property_month')
                 field: property_month_id
       - name: suburb_key
         tests:
           - relationships:
-              args:
+              arguments:
                 to: ref('dim_suburb')
                 field: suburb_key
       - name: is_active
@@ -40,7 +40,7 @@ models:
               expression: ">= 0"
     tests:
       - dbt_utils.unique_combination_of_columns:
-          args:
+          arguments:
             combination_of_columns: [listing_id, year_month]
 
 
@@ -58,7 +58,7 @@ models:
       - name: accommodates
         tests:
           - dbt_utils.expression_is_true:
-              args:
+              arguments:
                 expression: ">= 1"
 
 
