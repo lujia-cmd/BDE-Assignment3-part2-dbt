@@ -34,11 +34,13 @@ models:
       - name: number_of_stays
         tests:
           - dbt_utils.expression_is_true:
-              expression: ">= 0"
+              arguments:
+                expression: ">= 0"
       - name: estimated_revenue_active
         tests:
           - dbt_utils.expression_is_true:
-              expression: ">= 0"
+              arguments:
+                expression: ">= 0"
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
