@@ -2,10 +2,11 @@
 
 {{
     config(
-        target_schema='snapshots',
+        target_schema='snapshots', 
         unique_key='host_id',
         strategy='timestamp',
-        updated_at='scraped_date'
+        updated_at='scraped_date',
+        invalidate_hard_deletes=false 
     )
 }}
 

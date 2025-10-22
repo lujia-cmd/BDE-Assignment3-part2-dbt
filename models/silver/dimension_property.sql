@@ -2,10 +2,11 @@
 
 with distinct_props as (
     select distinct
-    nullif(property_type, '') as property_type,
-    nullif(room_type, '') as room_type,
+    property_type,
+    room_type,
     accommodates
     from {{ ref('airbnb_listing') }}
+    where accommodates is not null and accommodates >= 1
 )
 
 select

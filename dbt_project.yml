@@ -32,4 +32,3 @@ models:
 snapshots:
   bde_assignment3:
     +target_schema: silver
-    

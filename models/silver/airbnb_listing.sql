@@ -10,51 +10,38 @@ with del as (
     regexp_replace(trim("PRICE"),  '[^\x09\x0A\x0D\x20-\x7E]', '', 'g') as price_raw,
     regexp_replace(trim("HAS_AVAILABILITY"), '[^\x20-\x7E]', '', 'g') as has_availability_raw,
     regexp_replace(trim("HOST_IS_SUPERHOST"), '[^\x20-\x7E]', '', 'g') as host_is_superhost_raw,
-    *
+    regexp_replace("HOST_SINCE"::text, E'[\\u00A0\\u2000-\\u200B\\s]', '', 'g') as host_since_raw,
+    
+    "ACCOMMODATES", "AVAILABILITY_30", "NUMBER_OF_REVIEWS",
+    "REVIEW_SCORES_RATING", "REVIEW_SCORES_ACCURACY", "REVIEW_SCORES_CLEANLINESS",
+    "REVIEW_SCORES_CHECKIN", "REVIEW_SCORES_COMMUNICATION", "REVIEW_SCORES_VALUE",
+    "LISTING_ID", "SCRAPE_ID", "HOST_ID", "HOST_NAME", "HOST_SINCE",
+    "HOST_NEIGHBOURHOOD", "LISTING_NEIGHBOURHOOD", "PROPERTY_TYPE", "ROOM_TYPE"
     from {{ source('bronze','airbnb_052020') }}
 ),
 
 deal as (
     select
-    -- Timestamp: YYYY-MM-DD HH:MM:SS or YYYY-MM-DD
-    case
-    when scraped_date_raw ~ '^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$'
-    then to_timestamp(scraped_date_raw,'YYYY-MM-DD HH24:MI:SS')
-    when scraped_date_raw ~ '^\d{4}-\d{2}-\d{2}$'
-    then to_timestamp(scraped_date_raw,'YYYY-MM-DD')
-    else null
-    end as scraped_date,
-
-    date_trunc('month',
-    case
-    when scraped_date_raw ~ '^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$'
-    then to_timestamp(scraped_date_raw,'YYYY-MM-DD HH24:MI:SS')
-    when scraped_date_raw ~ '^\d{4}-\d{2}-\d{2}$'
-    then to_timestamp(scraped_date_raw,'YYYY-MM-DD')
-    else null
-    end
-    )::date as month_date,
+    -- Timestamp: YYYY-MM-DD
+    to_date(scraped_date_raw, 'YYYY-MM-DD')::timestamp as scraped_date,
+    to_char(date_trunc('month', to_date(scraped_date_raw, 'YYYY-MM-DD')), 'YYYY-MM') as year_month,
 
     --Price Cleaning
     case
-    when price_raw ~ '^\d+(\.\d+)?$'
-    then price_raw::numeric(12,2)
-    when regexp_replace(price_raw,'[^0-9\.]','','g') ~ '^\d+(\.\d+)?$'
-    then regexp_replace(price_raw,'[^0-9\.]','','g')::numeric(12,2)
+    when replace(price_raw, ',', '') ~ '^\d+(\.\d+)?$'
+    then replace(price_raw, ',', '')::numeric(12,2)
     else null
     end as price,
 
     --Bool
     case
-    when lower(has_availability_raw) = 't' then true
-    when lower(has_availability_raw) = 'f' then false
-    else null
+    when lower(has_availability_raw) in ('t','true','1','y') then true
+    else false
     end as has_availability,
 
     case
-    when lower(host_is_superhost_raw) = 't' then true
-    when lower(host_is_superhost_raw) = 'f' then false
-    else null
+    when lower(host_is_superhost_raw) in ('t','true','1','y') then true
+    else false
     end as host_is_superhost,
 
     --Numeric standard
@@ -75,8 +62,14 @@ deal as (
     cast(trim("HOST_ID") as text) as host_id,
     nullif(trim("HOST_NAME"),'') as host_name,
     case
-    when trim("HOST_SINCE") ~ '^\d{4}-\d{2}-\d{2}$'
-    then to_date(trim("HOST_SINCE"),'YYYY-MM-DD')
+    when trim("HOST_SINCE") ~ '^\d{1,2}/\d{1,2}/\d{4}$'
+    then to_char(to_date(trim("HOST_SINCE"), 'DD/MM/YYYY'), 'YYYY-MM-DD')
+    when trim("HOST_SINCE") ~ '^\d{4}-\d{1,2}-\d{1,2}$'
+    then to_char(to_date(trim("HOST_SINCE"), 'YYYY-MM-DD'), 'YYYY-MM-DD')
+    when trim("HOST_SINCE") ~ '^\d{1,2}-\d{1,2}-\d{4}$'
+    then to_char(to_date(trim("HOST_SINCE"), 'DD-MM-YYYY'), 'YYYY-MM-DD')
+    when trim("HOST_SINCE") ~ '^\d{4}-\d{1,2}-\d{1,2}$'
+    then to_char(to_date(trim("HOST_SINCE"), 'YYYY-MM-DD'), 'YYYY-MM-DD')
     else null
     end as host_since,
     nullif(lower(trim("HOST_NEIGHBOURHOOD")),'') as host_neighbourhood,
@@ -86,15 +79,20 @@ deal as (
     from del
 ),
 
+{% if is_incremental() %}
 filtered as (
     select *
     from deal
-    {% if is_incremental() %}
-    where scraped_date >
-    (select coalesce(max(scraped_date), '1900-01-01'::timestamp) from {{ this }})
-    or month_date >= (select coalesce(max(month_date), '1900-01-01'::date) from {{ this }})
-    {% endif %}
+    where (year_month, coalesce(scraped_date,'1900-01-01'::timestamp)) > (select coalesce(max(year_month),'1900-01'),
+    coalesce(max(scraped_date),'1900-01-01'::timestamp)
+    from {{ this }})
 ),
+
+base as (select * from filtered)
+{% else %}
+base as (select * from deal)
+{% endif %},
+
 
 -- Remove duplicate records in the same month
 dedup as (
@@ -103,17 +101,17 @@ dedup as (
         select
         *,
         row_number() over (
-            partition by listing_id, month_date
+            partition by listing_id, year_month
             order by scraped_date desc nulls last
         ) as rn
-        from filtered
-    ) z
+        from base
+    ) t
     where rn = 1
 )
 
 select
-{{ dbt_utils.generate_surrogate_key(['listing_id', 'month_date::text']) }} as listing_month_id,
-listing_id, scrape_id, scraped_date, month_date,
+{{ dbt_utils.generate_surrogate_key(['listing_id', 'year_month']) }} as listing_month_id,
+listing_id, scrape_id, scraped_date, year_month,
 host_id, host_name, host_since, host_is_superhost, host_neighbourhood,
 listing_neighbourhood, property_type, room_type, accommodates,
 price, has_availability, availability_30, number_of_reviews,

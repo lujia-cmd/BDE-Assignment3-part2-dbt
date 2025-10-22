@@ -8,9 +8,9 @@ nullif(trim("Median_mortgage_repay_monthly"), '')::int as median_mortgage_repay_
 nullif(trim("Median_tot_prsnl_inc_weekly"), '')::int as median_tot_prsnl_inc_weekly, 
 nullif(trim("Median_rent_weekly"), '')::int as median_rent_weekly, 
 nullif(trim("Median_tot_fam_inc_weekly"), '')::int as median_tot_fam_inc_weekly,
-nullif(trim("Average_num_psns_per_bedroom"), '')::numeric(4,2) as average_num_psns_per_bedroom, 
+nullif(trim("Average_num_psns_per_bedroom"), '')::numeric(5,2) as average_num_psns_per_bedroom, 
 nullif(trim("Median_tot_hhd_inc_weekly"), '')::int as median_tot_hhd_inc_weekly, 
-nullif(trim("Average_household_size"), '')::numeric(4,2) as average_household_size
+nullif(trim("Average_household_size"), '')::numeric(5,2) as average_household_size
     
 from {{ source('bronze','census_g02') }}
 where "LGA_CODE_2016" is not null

@@ -6,10 +6,10 @@ with base as (
     host_name,
     host_since,
     host_is_superhost,
-    month_date,
+    year_month,
     scraped_date,
     row_number() over (
-        partition by host_id, month_date
+        partition by host_id, year_month
         order by scraped_date desc nulls last
     ) as rn
     from {{ ref('airbnb_listing') }}
@@ -17,12 +17,13 @@ with base as (
 )
 
 select
-{{ dbt_utils.generate_surrogate_key(['host_id','month_date::text']) }} as host_month_id,
+{{ dbt_utils.generate_surrogate_key(['host_id','year_month']) }} as host_month_id,
 host_id,
 host_name,
 host_since,
 host_is_superhost,
-month_date,
-scraped_date
+year_month,
+scraped_date,
+year_month as valid_from
 from base
 where rn = 1
