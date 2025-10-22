@@ -29,7 +29,8 @@ models:
       - name: is_active
         tests:
           - accepted_values:
-              values: [0, 1]
+              arguments:
+                values: [0, 1]
       - name: number_of_stays
         tests:
           - dbt_utils.expression_is_true:
