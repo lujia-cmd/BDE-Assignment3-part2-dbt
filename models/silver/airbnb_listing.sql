@@ -1,7 +1,8 @@
 {{ config(
   materialized='incremental',
   unique_key='listing_month_id',
-  incremental_strategy='delete+insert'
+  incremental_strategy='delete+insert',
+  on_schema_change='sync_all_columns'
 ) }}
 
 with del as (
@@ -17,7 +18,7 @@ with del as (
     "REVIEW_SCORES_CHECKIN", "REVIEW_SCORES_COMMUNICATION", "REVIEW_SCORES_VALUE",
     "LISTING_ID", "SCRAPE_ID", "HOST_ID", "HOST_NAME", "HOST_SINCE",
     "HOST_NEIGHBOURHOOD", "LISTING_NEIGHBOURHOOD", "PROPERTY_TYPE", "ROOM_TYPE"
-    from {{ source('bronze','airbnb_052020') }}
+    from {{ source('bronze','airbnb_listing_raw') }}
 ),
 
 deal as (
@@ -83,16 +84,13 @@ deal as (
 filtered as (
     select *
     from deal
-    where (year_month, coalesce(scraped_date,'1900-01-01'::timestamp)) > (select coalesce(max(year_month),'1900-01'),
-    coalesce(max(scraped_date),'1900-01-01'::timestamp)
-    from {{ this }})
+    where year_month = '{{ var("year_month") }}'
 ),
 
 base as (select * from filtered)
 {% else %}
 base as (select * from deal)
 {% endif %},
-
 
 -- Remove duplicate records in the same month
 dedup as (

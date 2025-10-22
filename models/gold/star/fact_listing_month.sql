@@ -1,4 +1,8 @@
-{{ config(materialized='table') }}
+{{ config(
+    materialized='incremental',
+    unique_key='listing_id || year_month',
+    incremental_strategy='delete+insert'
+) }}
 
 with base as (
     select
@@ -13,6 +17,9 @@ with base as (
     availability_30,
     case when has_availability then 1 else 0 end as is_active
     from {{ ref('airbnb_listing') }}
+    {% if is_incremental() %}
+    where year_month = '{{ var("year_month") }}'
+    {% endif %}
 ),
 
 -- Host dimension: same as (host_id, year_month) only one entry left
