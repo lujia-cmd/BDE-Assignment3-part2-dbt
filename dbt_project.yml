@@ -19,9 +19,6 @@ clean-targets:
 
 models:
   bde_assignment3:
-    bronze:
-      +schema: bronze
-      +materialized: view
     silver:
       +schema: silver
       +materialized: table
