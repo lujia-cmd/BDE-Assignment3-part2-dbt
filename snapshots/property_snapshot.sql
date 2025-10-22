@@ -5,7 +5,7 @@
         target_schema='snapshots',
         unique_key='property_key',
         strategy='timestamp',
-        updated_at='scraped_date',
+        updated_at='scraped_date::timestamp',
         invalidate_hard_deletes=false
     )
 }}
