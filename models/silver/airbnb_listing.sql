@@ -62,14 +62,14 @@ deal as (
     cast(trim("HOST_ID") as text) as host_id,
     nullif(trim("HOST_NAME"),'') as host_name,
     case
-    when trim("HOST_SINCE") ~ '^\d{1,2}/\d{1,2}/\d{4}$'
-    then to_char(to_date(trim("HOST_SINCE"), 'DD/MM/YYYY'), 'YYYY-MM-DD')
-    when trim("HOST_SINCE") ~ '^\d{4}-\d{1,2}-\d{1,2}$'
-    then to_char(to_date(trim("HOST_SINCE"), 'YYYY-MM-DD'), 'YYYY-MM-DD')
-    when trim("HOST_SINCE") ~ '^\d{1,2}-\d{1,2}-\d{4}$'
-    then to_char(to_date(trim("HOST_SINCE"), 'DD-MM-YYYY'), 'YYYY-MM-DD')
-    when trim("HOST_SINCE") ~ '^\d{4}-\d{1,2}-\d{1,2}$'
-    then to_char(to_date(trim("HOST_SINCE"), 'YYYY-MM-DD'), 'YYYY-MM-DD')
+    when host_since_raw ~ '^\d{1,2}/\d{1,2}/\d{4}$'
+    then to_char(to_date(host_since_raw, 'DD/MM/YYYY'), 'YYYY-MM-DD')
+    when host_since_raw ~ '^\d{4}-\d{1,2}-\d{1,2}$'
+    then to_char(to_date(host_since_raw, 'YYYY-MM-DD'), 'YYYY-MM-DD')
+    when host_since_raw ~ '^\d{1,2}-\d{1,2}-\d{4}$'
+    then to_char(to_date(host_since_raw, 'DD-MM-YYYY'), 'YYYY-MM-DD')
+    when host_since_raw ~ '^\d{4}-\d{1,2}-\d{1,2}$'
+    then to_char(to_date(host_since_raw, 'YYYY-MM-DD'), 'YYYY-MM-DD')
     else null
     end as host_since,
     nullif(lower(trim("HOST_NEIGHBOURHOOD")),'') as host_neighbourhood,
