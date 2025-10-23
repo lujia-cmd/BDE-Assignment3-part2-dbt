@@ -7,7 +7,7 @@ with snapshot_host as (
     host_since,
     host_is_superhost,
     dbt_valid_from::date as valid_from,
-    coalesce(dbt_valid_to, '9999-12-31')::date as valid_to
+    coalesce(dbt_valid_to, '2021-04-30')::date as valid_to
     from {{ ref('host_snapshot') }}
 ),
 
@@ -26,4 +26,5 @@ select
 {{ dbt_utils.generate_surrogate_key(['host_id',"to_char(year_month,'YYYY-MM')"]) }} as host_month_id,
 *
 from expanded
+
 order by host_id, year_month
