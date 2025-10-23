@@ -5,7 +5,7 @@
         target_schema=target.schema,
         unique_key='property_key',
         strategy='timestamp',
-        updated_at='scraped_date::timestamp',
+        updated_at='scraped_date',
         post_hook=[
         "create index if not exists {{ this.name }}_uk on {{ this }} (property_key)",
         "create index if not exists {{ this.name }}_vfrom on {{ this }} (dbt_valid_from)",
@@ -30,7 +30,6 @@ with base as (
     from {{ ref('airbnb_listing') }}
     where property_type is not null and room_type is not null and accommodates is not null
 )
-
 
 select
 property_key,

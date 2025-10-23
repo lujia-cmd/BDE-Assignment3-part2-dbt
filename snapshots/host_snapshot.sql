@@ -1,4 +1,4 @@
-{% snapshot property_snapshot %}
+{% snapshot host_snapshot %}
 {{
     config(
         target_schema=target.schema, 
