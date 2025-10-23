@@ -6,7 +6,7 @@ with fact as (
     f.suburb_key,
     to_date(f.year_month || '-01','YYYY-MM-DD')::date as month_date,
     f.price,
-    f.is_active,
+    (f.is_active,
     f.number_of_stays,
     f.estimated_revenue_active,
     f.host_month_id
@@ -38,11 +38,11 @@ reviews as (
 
 joined as (
     select
-    n.listing_neighbourhood,
+    coalesce(n.listing_neighbourhood, 'Unknown') as listing_neighbourhood,
     f.month_date,
     f.listing_id,
     f.price,
-    f.is_active,
+    coalesce(f.is_active, 0) as is_active,
     f.number_of_stays,
     f.estimated_revenue_active,
     h.host_id,
@@ -60,7 +60,8 @@ aggregator as (
     listing_neighbourhood,
     month_date,
     count(*) as total_listings,
-    sum(is_active) as active_listings,
+    sum(coalesce(is_active,0)) as active_listings,
+    (count(*) - sum(coalesce(is_active,0))) as inactive_listings,
 
     --  Minimum, maximum, median and average price for active listings
     min(case when is_active=1 then price end) as min_price_active,
@@ -99,6 +100,10 @@ avg_price_active,
 distinct_hosts,
 superhost_rate,
 avg_review_scores_rating_active,
+total_listings,
+active_listings,
+inactive_listings,
+
 
 100.0 * active_listings / nullif(total_listings,0) as active_listing_rate,
 
