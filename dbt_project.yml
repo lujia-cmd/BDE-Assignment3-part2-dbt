@@ -29,3 +29,6 @@ models:
 snapshots:
   bde_assignment3:
     +target_schema: silver
+
+vars:
+  year_month: "{{ env_var('DBT_YEAR_MONTH', '2020-05') }}"
