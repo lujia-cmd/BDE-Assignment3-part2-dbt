@@ -21,11 +21,12 @@ with base as (
     property_type,
     room_type,
     accommodates,
-    scraped_date::timestamp as scraped_date,
+    scraped_date::timestamp as scraped_date
     from {{ ref('airbnb_listing') }}
     where property_type is not null and room_type is not null and accommodates is not null
 )
 
 select * from base
+
 
 {% endsnapshot %}
