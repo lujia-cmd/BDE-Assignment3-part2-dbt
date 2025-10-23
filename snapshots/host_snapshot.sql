@@ -21,7 +21,6 @@ with base as (
     row_number() over (partition by host_id order by scraped_date desc) as rn
     from {{ ref('airbnb_listing') }}
     where host_id is not null
-    and year_month = '{{ var("year_month") }}'
 )
 
 select
