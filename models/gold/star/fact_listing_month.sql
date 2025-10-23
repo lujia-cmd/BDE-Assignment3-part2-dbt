@@ -78,6 +78,7 @@ final as (
     select
     listing_id,
     year_month,
+    month_date,
     host_month_id,
     property_month_id,
     property_key,
@@ -98,3 +99,4 @@ final as (
 )
 
 select * from final
+
