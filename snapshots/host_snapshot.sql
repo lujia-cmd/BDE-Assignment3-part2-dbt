@@ -23,5 +23,5 @@ host_is_superhost,
 scraped_date::timestamp as scraped_date
 from {{ ref('airbnb_listing') }}
 where host_id is not null
-
+and year_month = '{{ var("year_month") }}'
 {% endsnapshot %}
