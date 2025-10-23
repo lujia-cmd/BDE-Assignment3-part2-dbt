@@ -15,21 +15,13 @@
     )
 }}
 
-with base as (
-    select *,
-    row_number() over (
-    partition by host_id
-    order by scraped_date desc
-    ) rn
-  from {{ ref('airbnb_listing') }}
-  where host_id is not null
-)
 select
 host_id,
 host_name,
 host_since,
 host_is_superhost,
 scraped_date::timestamp as scraped_date
-from base
-where rn = 1
+from {{ ref('airbnb_listing') }}
+where host_id is not null
+
 {% endsnapshot %}

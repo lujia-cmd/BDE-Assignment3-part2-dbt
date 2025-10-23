@@ -21,23 +21,10 @@ with base as (
     property_type,
     room_type,
     accommodates,
-    scraped_date,
-    row_number() over (
-    partition by property_type, room_type, accommodates
-    order by scraped_date desc
-    ) rn
+    scraped_date::timestamp as scraped_date
     from {{ ref('airbnb_listing') }}
     where property_type is not null and room_type is not null and accommodates is not null
 )
 
-
-select
-property_key,
-property_type,
-room_type,
-accommodates,
-scraped_date::timestamp as scraped_date
-from base
-where rn = 1
-
+select * from base
 {% endsnapshot %}
