@@ -6,7 +6,7 @@ with snapshot_property as (
     room_type,
     accommodates,
     dbt_valid_from::date as valid_from,
-    coalesce(dbt_valid_to, '9999-12-31')::date as valid_to
+    coalesce(dbt_valid_to, '2021-04-30')::date as valid_to
     from {{ ref('property_snapshot') }}
 ),
 
@@ -25,4 +25,5 @@ select
 {{ dbt_utils.generate_surrogate_key(['property_type','room_type','accommodates::text']) }} as property_key,
 * 
 from expanded
+
 order by property_type, room_type, accommodates, year_month
