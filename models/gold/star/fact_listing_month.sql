@@ -59,7 +59,7 @@ joined as (
     -- SCD2: Interval connection host dimension
     left join {{ ref('dim_host_month') }} h
     on h.host_id = b.host_id
-    and b.month_date >= h.year_month
+    and b.month_date >= h.valid_from
     and b.month_date <  h.valid_to
 
     -- SCD2: Interval concatenation property dimension (match by property + interval)
