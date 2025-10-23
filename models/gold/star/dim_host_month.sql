@@ -11,8 +11,8 @@ with snapshot_host as (
     host_name,
     host_since,
     host_is_superhost,
-    dbt_valid_from::date as valid_from,
-    coalesce(dbt_valid_to, '9999-12-31')::date as valid_to
+    date_trunc('month', dbt_valid_from)::date as month_from,
+    date_trunc('month', coalesce(dbt_valid_to, '9999-12-31'))::date as month_to
     from {{ ref('host_snapshot') }}
 )
 
@@ -22,8 +22,6 @@ host_id,
 host_name,
 host_since,
 host_is_superhost,
-valid_from, 
-valid_to
-
+month_from, 
+month_to
 from snapshot_host
-
