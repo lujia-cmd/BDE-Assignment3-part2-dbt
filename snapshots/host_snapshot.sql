@@ -18,18 +18,11 @@ with base as (
     select
     host_id, host_name, host_since, host_is_superhost,
     scraped_date::timestamp as scraped_date,
-    row_number() over (partition by host_id order by scraped_date desc) as rn
+    scraped_date::timestamp as scraped_date
     from {{ ref('airbnb_listing') }}
     where host_id is not null
 )
 
-select
-host_id,
-host_name,
-host_since,
-host_is_superhost,
-scraped_date
-from base
-where rn=1
+select * from base
 
 {% endsnapshot %}

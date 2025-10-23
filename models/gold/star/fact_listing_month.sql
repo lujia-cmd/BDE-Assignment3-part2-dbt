@@ -1,7 +1,13 @@
 {{ config(
     materialized='incremental',
     unique_key='listing_id || year_month',
-    incremental_strategy='delete+insert'
+    incremental_strategy='delete+insert',
+    on_schema_change='sync_all_columns'
+    post_hook=[
+      "analyze {{ this }}",
+      "create index if not exists {{ this.name }}_ym on {{ this }} (year_month)",
+      "create index if not exists {{ this.name }}_lid on {{ this }} (listing_id)"
+    ]
 ) }}
 
 with base as (
