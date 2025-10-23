@@ -27,12 +27,8 @@ deal as (
     select
     -- Timestamp: YYYY-MM-DD
     '{{ var("year_month") }}'::text as year_month,
-    to_date(scraped_date_raw, 'YYYY-MM-DD')::timestamp as scraped_date_src,
+    to_date(scraped_date_raw, 'YYYY-MM-DD')::timestamp as scraped_date,
     to_char(to_date(scraped_date_raw, 'YYYY-MM-DD'), 'YYYY-MM') as source_month,
-    (
-      to_date('{{ var("year_month") }}-01','YYYY-MM-DD')
-      + interval '1 month - 1 day'
-    )::timestamp as scraped_date,
     
     --Price Cleaning
     case
