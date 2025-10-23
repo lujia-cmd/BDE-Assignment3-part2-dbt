@@ -6,22 +6,22 @@
         strategy='timestamp',
         updated_at='scraped_date::timestamp',
         post_hook=[
-        "create index if not exists {{ this.name }}_uk on {{ this }} (host_id)",
-        "create index if not exists {{ this.name }}_vfrom on {{ this }} (dbt_valid_from)",
-        "create index if not exists {{ this.name }}_uk_vf on {{ this }} (host_id, dbt_valid_from)",
-        "analyze {{ this }}"
+            "create index if not exists {{ this.name }}_uk on {{ this }} (host_id)",
+            "create index if not exists {{ this.name }}_vfrom on {{ this }} (dbt_valid_from)",
+            "create index if not exists {{ this.name }}_uk_vf on {{ this }} (host_id, dbt_valid_from)",
+            "analyze {{ this }}"
         ]
     )
 }}
 
 with base as (
-    select *,
-    row_number() over (
-    partition by host_id, date_trunc('month', scraped_date)
-    order by scraped_date desc
-    ) rn
-  from {{ ref('airbnb_listing') }}
-  where host_id is not null
+    select
+    host_id, host_name, host_since, host_is_superhost,
+    scraped_date::timestamp as scraped_date,
+    row_number() over (partition by host_id order by scraped_date desc) as rn
+    from {{ ref('airbnb_listing') }}
+    where host_id is not null
+    and year_month = '{{ var("year_month") }}'
 )
 
 select
@@ -29,8 +29,8 @@ host_id,
 host_name,
 host_since,
 host_is_superhost,
-scraped_date::timestamp as scraped_date
-from {{ ref('airbnb_listing') }}
-where host_id is not null
-and year_month = '{{ var("year_month") }}'
+scraped_date
+from base
+where rn=1
+
 {% endsnapshot %}
