@@ -3,7 +3,7 @@ sources:
   - name: bronze
     schema: bronze
     tables:
-      - name: airbnb_052020
+      - name: airbnb_listing_raw
       - name: census_g01
       - name: census_g02
       - name: lga_code
