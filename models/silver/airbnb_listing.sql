@@ -1,3 +1,5 @@
+{{ log(">> YM=" ~ var('year_month'), info=True) }}
+
 {{ config(
   materialized='incremental',
   unique_key='listing_month_id',
@@ -24,9 +26,14 @@ with del as (
 deal as (
     select
     -- Timestamp: YYYY-MM-DD
-    to_date(scraped_date_raw, 'YYYY-MM-DD')::timestamp as scraped_date,
-    to_char(date_trunc('month', to_date(scraped_date_raw, 'YYYY-MM-DD')), 'YYYY-MM') as year_month,
-
+    '{{ var("year_month") }}'::text as year_month,
+    to_date(scraped_date_raw, 'YYYY-MM-DD')::timestamp as scraped_date_src,
+    to_char(to_date(scraped_date_raw, 'YYYY-MM-DD'), 'YYYY-MM') as source_month,
+    (
+      to_date('{{ var("year_month") }}-01','YYYY-MM-DD')
+      + interval '1 month - 1 day'
+    )::timestamp as scraped_date,
+    
     --Price Cleaning
     case
     when replace(price_raw, ',', '') ~ '^\d+(\.\d+)?$'
@@ -84,7 +91,7 @@ deal as (
 filtered as (
     select *
     from deal
-    where year_month = '{{ var("year_month") }}'
+    where source_month = '{{ var("year_month") }}'
 ),
 
 base as (select * from filtered)
@@ -114,5 +121,6 @@ host_id, host_name, host_since, host_is_superhost, host_neighbourhood,
 listing_neighbourhood, property_type, room_type, accommodates,
 price, has_availability, availability_30, number_of_reviews,
 review_scores_rating, review_scores_accuracy, review_scores_cleanliness,
-review_scores_checkin, review_scores_communication, review_scores_value
+review_scores_checkin, review_scores_communication, review_scores_value,
+scraped_date_src
 from dedup
