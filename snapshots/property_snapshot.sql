@@ -28,5 +28,5 @@ with base as (
 
 select * from base
 
-
 {% endsnapshot %}
+
