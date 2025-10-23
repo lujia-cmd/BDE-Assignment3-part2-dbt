@@ -1,29 +1,30 @@
-{{ config(materialized='table') }}
+{{ config(
+    materialized='table',
+    post_hook=[
+      "create index if not exists {{ this.name }}_range on {{ this }} (property_key, valid_from, valid_to)",
+      "create index if not exists {{ this.name }}_attrs on {{ this }} (property_type, room_type, accommodates, valid_from, valid_to)",
+      "analyze {{ this }}"
+    ]
+) }}
 
 with snapshot_property as (
     select
+    {{ dbt_utils.generate_surrogate_key(['property_type','room_type','accommodates::text']) }} as property_key,
     property_type,
     room_type,
     accommodates,
     dbt_valid_from::date as valid_from,
-    coalesce(dbt_valid_to, '2021-04-30')::date as valid_to
+    coalesce(dbt_valid_to, '9999-12-31')::date as valid_to
     from {{ ref('property_snapshot') }}
 ),
 
-expanded as (
-    select
-    property_type,
-    room_type,
-    accommodates,
-    date_trunc('month', gs)::date as year_month
-    from snapshot_property,
-    generate_series(valid_from, valid_to, interval '1 month') as gs
-)
-
 select
-{{ dbt_utils.generate_surrogate_key(['property_type','room_type','accommodates::text',"to_char(year_month, 'YYYY-MM')"]) }} as property_month_id,
-{{ dbt_utils.generate_surrogate_key(['property_type','room_type','accommodates::text']) }} as property_key,
-* 
-from expanded
+{{ dbt_utils.generate_surrogate_key(['property_key', "to_char(valid_from, 'YYYY-MM-DD')"]) }} as property_month_id,
+property_key,
+property_type,
+room_type,
+accommodates,
+valid_from,
+valid_to
 
-order by property_type, room_type, accommodates, year_month
+from snapshot_property
