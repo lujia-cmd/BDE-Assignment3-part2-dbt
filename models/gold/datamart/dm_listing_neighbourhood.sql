@@ -67,7 +67,7 @@ aggregator as (
     min(case when is_active=1 then price end) as min_price_active,
     max(case when is_active=1 then price end) as max_price_active,
     avg(case when is_active=1 then price end) as avg_price_active,
-    percentile_cont(0.5) within group (order by case when is_active=1 then price end) as median_price_active,
+    percentile_cont(0.5) within group (order by price) filter (where is_active=1) as median_price_active,
     
     -- Number of distinct hosts
     count(distinct case when is_active = 1 then host_id end) as distinct_hosts,
@@ -108,12 +108,12 @@ inactive_listings,
 100.0 * active_listings / nullif(total_listings,0) as active_listing_rate,
 
 -- Percentage change for active listings 
-100.0 * (active_listings - lag(active_listings) over (partition by listing_neighbourhood order by month_date))
-/ nullif(lag(active_listings) over (partition by listing_neighbourhood order by month_date),0) as per_change_active,
+coalesce(100.0 * (active_listings - lag(active_listings) over (partition by listing_neighbourhood order by month_date))
+/ nullif(lag(active_listings) over (partition by listing_neighbourhood order by month_date),0), 0) as per_change_active,
 
 -- Percentage change for inactive listings 
-100.0 * ((total_listings - active_listings) - lag(total_listings - active_listings) over (partition by listing_neighbourhood order by month_date))
-/ nullif(lag(total_listings - active_listings) over (partition by listing_neighbourhood order by month_date),0) as per_change_inactive,
+coalesce(100.0 * ((total_listings - active_listings) - lag(total_listings - active_listings) over (partition by listing_neighbourhood order by month_date))
+/ nullif(lag(total_listings - active_listings) over (partition by listing_neighbourhood order by month_date),0), 0) as per_change_inactive,
 
 total_number_of_stays,
 avg_estimated_revenue_per_active

@@ -14,14 +14,9 @@
     )
 }}
 
-with base as (
-    select
-    host_id, host_name, host_since, host_is_superhost,
-    scraped_date::timestamp as scraped_date
-    from {{ ref('airbnb_listing') }}
-    where host_id is not null
-)
-
-select * from base
+select
+host_id, host_name, host_since, host_is_superhost,
+scraped_date::timestamp as scraped_date
+from {{ ref('airbnb_listing') }}
+where host_id is not null
 {% endsnapshot %}
-
