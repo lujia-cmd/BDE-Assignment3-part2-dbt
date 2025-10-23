@@ -30,22 +30,6 @@ with base as (
     {% endif %}
 ),
 
--- Host dimension: same as (host_id, year_month) only one entry left
-host_dedup as (
-    select
-    host_month_id, host_id, year_month,
-    row_number() over (
-    partition by host_id, year_month
-    order by host_month_id desc
-    ) as rn
-    from {{ ref('dim_host_month') }}
-),       
-host_to1 as (
-    select host_month_id, host_id, year_month
-    from host_dedup
-    where rn = 1
-),
-
 -- Host Dimension (Monthly), leave one entry only
 host_to1 as (
     select host_month_id, host_id, year_month
