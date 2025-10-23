@@ -7,10 +7,10 @@
         strategy='timestamp',
         updated_at='scraped_date',
         post_hook=[
-        "create index if not exists {{ this.name }}_uk on {{ this }} (property_key)",
-        "create index if not exists {{ this.name }}_vfrom on {{ this }} (dbt_valid_from)",
-        "create index if not exists {{ this.name }}_uk_vf on {{ this }} (property_key, dbt_valid_from)",
-        "analyze {{ this }}"
+            "create index if not exists {{ this.name }}_uk on {{ this }} (property_key)",
+            "create index if not exists {{ this.name }}_vfrom on {{ this }} (dbt_valid_from)",
+            "create index if not exists {{ this.name }}_uk_vf on {{ this }} (property_key, dbt_valid_from)",
+            "analyze {{ this }}"
         ]
     )
 }}

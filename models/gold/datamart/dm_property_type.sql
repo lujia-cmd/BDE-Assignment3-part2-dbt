@@ -13,7 +13,8 @@ with fact as (
     f.estimated_revenue_active,
     f.is_active
     from {{ ref('fact_listing_month') }} f
-    join {{ ref('dim_property_month') }} p on p.property_month_id = f.property_month_id
+    join {{ ref('dim_property_month') }} p 
+    on p.property_month_id = f.property_month_id
 ),
 
 joined as (
@@ -25,7 +26,7 @@ joined as (
     f.price,
     f.number_of_stays,
     f.estimated_revenue_active,
-    f.is_active,
+    coalesce(f.is_active, 0) as is_active,
     h.host_id,
     h.host_is_superhost,
     r.review_scores_rating
@@ -44,7 +45,8 @@ aggregator as (
     accommodates,
     month_date,
     count(*) as total_listings,
-    sum(is_active) as active_listings,
+    sum(coalesce(is_active,0)) as active_listings,
+    (count(*) - sum(coalesce(is_active,0))) as inactive_listings,
 
     --  Minimum, maximum, median and average price for active listings
     min(case when is_active=1 then price end) as min_price_active,
@@ -68,7 +70,6 @@ aggregator as (
     -- Average Estimated revenue per active listings 
     sum(case when is_active = 1 then estimated_revenue_active end)
     / nullif(sum(case when is_active = 1 then 1 else 0 end), 0) as avg_estimated_revenue_per_active
-    
     from joined
     group by property_type, room_type, accommodates, month_date
 )
