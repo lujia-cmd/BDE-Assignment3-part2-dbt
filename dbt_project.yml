@@ -22,10 +22,10 @@ models:
     gold:
       +schema: gold
       +materialized: table
-
-snapshots:
-  bde_assignment3:
-    +target_schema: silver
+      
+  snapshots:
+    bde_assignment3:
+      +target_schema: snapshots
 
 vars:
   year_month: "{{ env_var('DBT_YEAR_MONTH', '2020-05') }}"
