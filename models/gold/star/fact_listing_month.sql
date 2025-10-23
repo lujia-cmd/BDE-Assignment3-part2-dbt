@@ -6,7 +6,7 @@
     post_hook=[
       "analyze {{ this }}",
       "create index if not exists {{ this.name }}_ym on {{ this }} (year_month)",
-      "create index if not exists {{ this.name }}_lid on {{ this }} (listing_id)"
+      "create index if not exists {{ this.name }}_lid on {{ this }} (listing_id)",
     ]
 ) }}
 
@@ -123,5 +123,6 @@ final as (
     is_active
     from joined
 )
+
 
 select * from final
