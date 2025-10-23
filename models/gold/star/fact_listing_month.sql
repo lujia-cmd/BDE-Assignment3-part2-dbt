@@ -15,7 +15,7 @@ with base as (
     select
     listing_id,
     year_month,
-    to_date(year_month || '-01','YYYY-MM-DD') as month_date,
+    to_date(year_month || '-01','YYYY-MM-DD')::date as month_date,
     listing_neighbourhood,
     host_id,
     property_type,
@@ -28,28 +28,6 @@ with base as (
     {% if is_incremental() %}
     where year_month = '{{ var("year_month") }}'
     {% endif %}
-),
-
--- Host Dimension (Monthly), leave one entry only
-host_to1 as (
-    select host_month_id, host_id, year_month
-    from (
-        select *, 
-        row_number() over (
-            partition by host_id, year_month order by host_month_id desc) as rn
-        from {{ ref('dim_host_month') }}
-    ) t where rn = 1
-),
-
--- Listing Dimension (Monthly), leave one entry only
-prop_to1 as (
-    select property_month_id, property_key, property_type, room_type, accommodates, year_month
-    from (
-        select *, row_number() over (
-            partition by property_type, room_type, accommodates, year_month order by property_month_id desc
-        ) as rn
-        from {{ ref('dim_property_month') }}
-    ) t where rn = 1
 ),
 
 -- Suburb to LGA: only one mapping is kept for the same suburb
@@ -68,6 +46,7 @@ joined as (
     select
     b.listing_id,
     b.year_month,
+    b.month_date,
     h.host_month_id,
     p.property_month_id,
     p.property_key,
@@ -76,14 +55,21 @@ joined as (
     b.availability_30,
     b.is_active
     from base b
-    left join host_to1 h
-    on b.host_id = h.host_id
-    and b.month_date = h.year_month
-    left join prop_to1 p
+
+    -- SCD2: Interval connection host dimension
+    left join {{ ref('dim_host_month') }} h
+    on h.host_id = b.host_id
+    and b.month_date >= h.year_month
+    and b.month_date <  h.valid_to
+
+    -- SCD2: Interval concatenation property dimension (match by property + interval)
+    left join {{ ref('dim_property_month') }} p
     on p.property_type = b.property_type
     and p.room_type= b.room_type
     and p.accommodates = b.accommodates
-    and b.month_date = p.year_month
+    and b.month_date >= p.valid_from
+    and b.month_date <  p.valid_to
+
     left join suburb_to1 s
     on s.suburb_name = b.listing_neighbourhood
 ),
