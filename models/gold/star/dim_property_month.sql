@@ -16,7 +16,7 @@ with snapshot_property as (
     dbt_valid_from::date as valid_from,
     coalesce(dbt_valid_to, '9999-12-31')::date as valid_to
     from {{ ref('property_snapshot') }}
-),
+)
 
 select
 {{ dbt_utils.generate_surrogate_key(['property_key', "to_char(valid_from, 'YYYY-MM-DD')"]) }} as property_month_id,
@@ -28,3 +28,4 @@ valid_from,
 valid_to
 
 from snapshot_property
+
