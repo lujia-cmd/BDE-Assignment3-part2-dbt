@@ -18,7 +18,7 @@
 with base as (
     select *,
     row_number() over (
-    partition by host_id, date_trunc('month', scraped_date)
+    partition by host_id
     order by scraped_date desc
     ) rn
   from {{ ref('airbnb_listing') }}

@@ -23,8 +23,7 @@ with base as (
     accommodates,
     scraped_date,
     row_number() over (
-    partition by property_type, room_type, accommodates,
-    date_trunc('month', scraped_date)
+    partition by property_type, room_type, accommodates
     order by scraped_date desc
     ) rn
     from {{ ref('airbnb_listing') }}
