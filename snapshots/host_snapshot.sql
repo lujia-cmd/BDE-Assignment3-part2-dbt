@@ -1,22 +1,4 @@
-{% snapshot host_snapshot %}
-
-{{
-    config(
-        target_schema=target.schema, 
-        unique_key='host_id',
-        strategy='timestamp',
-        updated_at='scraped_date::timestamp',
-        post_hook=[
-        "create index if not exists {{ this.name }}_uk on {{ this }} (host_id)",
-        "create index if not exists {{ this.name }}_vfrom on {{ this }} (dbt_valid_from)",
-        "create index if not exists {{ this.name }}_uk_vf on {{ this }} (host_id, dbt_valid_from)",
-        "analyze {{ this }}"
-        ]
-    )
-}}
-
-{% snapshot host_snapshot %}
-
+{% snapshot property_snapshot %}
 {{
     config(
         target_schema=target.schema, 
