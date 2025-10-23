@@ -6,7 +6,7 @@ with fact as (
     f.suburb_key,
     to_date(f.year_month || '-01','YYYY-MM-DD')::date as month_date,
     f.price,
-    (f.is_active,
+    f.is_active,
     f.number_of_stays,
     f.estimated_revenue_active,
     f.host_month_id
@@ -118,4 +118,5 @@ inactive_listings,
 total_number_of_stays,
 avg_estimated_revenue_per_active
 from aggregator
+
 order by listing_neighbourhood, month_date
