@@ -1,6 +1,6 @@
 {{ config(
     materialized='incremental',
-    unique_key='listing_id || year_month',
+    unique_key=['listing_id', 'year_month'],
     incremental_strategy='delete+insert',
     on_schema_change='sync_all_columns',
     post_hook=[
@@ -102,6 +102,7 @@ final as (
 )
 
 select * from final
+
 
 
 
