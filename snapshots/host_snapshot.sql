@@ -29,3 +29,4 @@ join latest using (host_id, scraped_date)
 
 
 
+
