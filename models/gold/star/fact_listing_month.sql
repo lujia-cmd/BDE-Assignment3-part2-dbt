@@ -11,6 +11,10 @@
     ]
 ) }}
 
+{% if not var('year_month', none) %}
+{{ exceptions.raise("Missing var: year_month (e.g. --vars 'year_month: \"2020-05\"')") }}
+{% endif %}
+
 with base as (
     select
     listing_id,
@@ -57,16 +61,16 @@ joined as (
     -- SCD2: Interval connection host dimension
     left join {{ ref('dim_host_month') }} h
     on h.host_id = b.host_id
-    and date_trunc('month', b.month_date) >= h.month_from
-    and date_trunc('month', b.month_date) < h.month_to
+    and b.month_date >= h.month_from
+    and b.month_date < h.month_to
 
     -- SCD2: Interval concatenation property dimension (match by property + interval)
     left join {{ ref('dim_property_month') }} p
     on p.property_type = b.property_type
     and p.room_type= b.room_type
     and p.accommodates = b.accommodates
-    and date_trunc('month', b.month_date) >= p.month_from
-    and date_trunc('month', b.month_date) < p.month_to
+    and b.month_date >= p.month_from
+    and b.month_date < p.month_to
 
     left join suburb_to1 s
     on s.suburb_name = b.listing_neighbourhood
@@ -97,7 +101,3 @@ final as (
 )
 
 select * from final
-
-
-
-
