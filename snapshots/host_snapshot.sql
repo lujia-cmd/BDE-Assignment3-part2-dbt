@@ -14,17 +14,21 @@
 with latest as (
     select
     host_id,
-    max(scraped_date::timestamp) as scraped_date
+    max(scraped_date::timestamp) as max_ts
     from {{ ref('airbnb_listing') }}
     where host_id is not null
     group by host_id
 )
 
 select
-l.host_id, l.host_name, l.host_since, l.host_is_superhost, latest.scraped_date
-scraped_date::timestamp as scraped_date
+l.host_id, l.host_name, l.host_since, l.host_is_superhost, l.scraped_date::timestamp as scraped_date
 from {{ ref('airbnb_listing') }} l
-join latest using (host_id, scraped_date)
+join latest lt on lt.host_id = l.host_id
+and l.scraped_date::timestamp = lt.max_ts
 {% endsnapshot %}
+
+
+
+
 
 

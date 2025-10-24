@@ -8,8 +8,6 @@
         updated_at='scraped_month',
         post_hook=[
             "create index if not exists {{ this.name }}_uk on {{ this }} (property_key)",
-            "create index if not exists {{ this.name }}_vfrom on {{ this }} (dbt_valid_from)",
-            "create index if not exists {{ this.name }}_uk_vf on {{ this }} (property_key, dbt_valid_from)",
             "analyze {{ this }}"
         ]
     )
@@ -48,3 +46,5 @@ property_key, property_type, room_type, accommodates, scraped_month
 from dedup_month
 
 {% endsnapshot %}
+
+
