@@ -73,4 +73,5 @@ from base b
 
 left join host_m h on b.host_id = h.host_id and b.month_date = h.month_from
 left join prop_m p on b.property_key= p.property_key and b.month_date = p.month_from
+
 left join suburb_m s on s.suburb_name= b.listing_neighbourhood
