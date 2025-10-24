@@ -62,13 +62,13 @@ joined as (
     left join {{ ref('dim_host_month') }} h
     on h.host_id = b.host_id
     and b.month_date >= h.month_from
-    and b.month_date < h.month_to
+    and (h.month_to is null or b.month_date < h.month_to)
 
     -- SCD2: Interval concatenation property dimension (match by property + interval)
     left join {{ ref('dim_property_month') }} p
-    on p.property_key = {{ dbt_utils.generate_surrogate_key(['b.property_type','b.room_type','b.accommodates::text']) }}
+    on p.property_key = b.property_key
     and b.month_date >= p.month_from
-    and b.month_date < p.month_to
+    and (p.month_to is null or b.month_date  < p.month_to)
 
     left join suburb_to1 s
     on s.suburb_name = b.listing_neighbourhood
@@ -99,4 +99,5 @@ final as (
 )
 
 select * from final
+
 
