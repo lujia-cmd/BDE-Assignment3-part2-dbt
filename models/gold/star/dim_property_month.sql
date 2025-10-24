@@ -18,7 +18,7 @@ with snapshot_property as (
 )
     
 select
-{{ dbt_utils.generate_surrogate_key(['property_key', 'month_from']) }} as property_month_id,
+{{ dbt_utils.generate_surrogate_key(['property_key', "to_char(month_from,'YYYY-MM')"]) }} as property_month_id,
 property_key,
 property_type,
 room_type,
@@ -26,3 +26,4 @@ accommodates,
 month_from,
 month_to
 from snapshot_property
+
