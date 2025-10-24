@@ -2,12 +2,12 @@
     materialized='incremental',
     unique_key=['listing_id', 'year_month'],
     incremental_strategy='delete+insert',
-    on_schema_change='sync_all_columns',
+    on_schema_change='append_new_columns',
     post_hook=[
-      "analyze {{ this }}",
-      "create index if not exists {{ this.name }}_ym on {{ this }} (year_month)",
-      "create index if not exists {{ this.name }}_lid on {{ this }} (listing_id)",
-      "create index if not exists {{ this.name }}_md on {{ this }} (month_date)"
+        "analyze {{ this }}",
+        "create index if not exists {{ this.name }}_ym on {{ this }} (year_month)",
+        "create index if not exists {{ this.name }}_lid on {{ this }} (listing_id)",
+        "create index if not exists {{ this.name }}_md on {{ this }} (month_date)"
     ]
 ) }}
 
@@ -25,57 +25,46 @@ with base as (
     coalesce(nullif(trim(room_type),''), 'Unknown') as room_type,
     accommodates,
     {{ dbt_utils.generate_surrogate_key([
-      "coalesce(nullif(trim(property_type),''), 'Unknown')", "coalesce(nullif(trim(room_type),''), 'Unknown')",
-      "accommodates::text"]) }} as property_key,
+        "coalesce(nullif(trim(property_type),''), 'Unknown')", "coalesce(nullif(trim(room_type),''), 'Unknown')",
+        "accommodates::text"]) }} as property_key,
     price,
     availability_30,
-    case when has_availability then 1 else 0 end as is_active,
+    case when has_availability = 't' then 1 else 0 end as is_active,
     listing_neighbourhood
     from {{ ref('airbnb_listing') }}
     where year_month = '{{ var("year_month") }}'
 ),
 
-joined as (
-    select
-    b.listing_id,
-    b.year_month,
-    b.month_date,
-    h.host_month_id,
-    p.property_month_id,
-    s.suburb_key,
-    b.price,
-    case when b.is_active = 1
-    then 30 - least(greatest(coalesce(b.availability_30,0), 0), 30)
-    else 0 end as number_of_stays,
-    case when b.is_active = 1
-    then (30 - least(greatest(coalesce(b.availability_30,0), 0), 30)) * b.price
-    else 0 end::numeric(14,2) as estimated_revenue_active,
-    b.is_active
-    from base b
-
-    left join {{ ref('dim_host_month') }} h
-    on b.host_id = h.host_id
-    and b.month_date >= h.month_from
-    and (h.month_to is null or b.month_date < h.month_to)
-
-    left join {{ ref('dim_property_month') }} p
-    on b.property_key = p.property_key
-    and b.month_date >= p.month_from
-    and (p.month_to is null or b.month_date < p.month_to)
-
-    left join {{ ref('dim_suburb') }} s
-    on s.suburb_name = b.listing_neighbourhood
+host_m as (
+    select host_month_id, host_id, month_from
+    from {{ ref('dim_host_month') }}
+),
+prop_m as (
+    select property_month_id, property_key, month_from
+    from {{ ref('dim_property_month') }}
+),
+suburb_m as (
+  select suburb_key, suburb_name
+  from {{ ref('dim_suburb') }}
 )
 
 select
-listing_id,
-year_month,
-month_date,
-host_month_id,
-property_month_id,
-suburb_key,
-price,
-number_of_stays,
-estimated_revenue_active,
-is_active
-from joined
+b.listing_id,
+b.year_month,
+b.month_date,
+h.host_month_id,
+p.property_month_id,
+s.suburb_key,
+b.price,
+case when b.is_active = 1
+then 30 - least(greatest(coalesce(b.availability_30,0), 0), 30)
+else 0 end as number_of_stays,
+case when b.is_active = 1
+then (30 - least(greatest(coalesce(b.availability_30,0), 0), 30)) * b.price
+else 0 end::numeric(14,2) as estimated_revenue_active,
+b.is_active
+from base b
+
+left join host_m h on b.host_id = h.host_id and b.month_date = h.month_from
+left join prop_m p on b.property_key= p.property_key and b.month_date = p.month_from
+left join suburb_m s on s.suburb_name= b.listing_neighbourhood

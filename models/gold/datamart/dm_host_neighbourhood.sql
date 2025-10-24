@@ -49,7 +49,7 @@ host_neighbourhood_lga,
 month_date,
 count(distinct host_id) as distinct_hosts,
 sum(estimated_revenue_active) as estimated_revenue,
-round(sum(estimated_revenue_active) / nullif(count(distinct host_id), 0), 2) as estimated_revenue_per_host
+round(sum(estimated_revenue_active)::numeric / nullif(count(distinct host_id), 0), 2) as estimated_revenue_per_host
 from base
 where host_neighbourhood_lga is not null
 group by host_neighbourhood_lga, month_date

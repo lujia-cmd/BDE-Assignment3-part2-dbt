@@ -67,13 +67,13 @@ aggregator as (
     min(case when is_active=1 then price end) as min_price_active,
     max(case when is_active=1 then price end) as max_price_active,
     avg(case when is_active=1 then price end) as avg_price_active,
-    percentile_cont(0.5) within group (order by price) filter (where is_active=1) as median_price_active,
+    percentile_cont(0.5) within group (order by price::numeric) filter (where is_active=1) as median_price_active,
     
     -- Number of distinct hosts
     count(distinct case when is_active = 1 then host_id end) as distinct_hosts,
 
     -- Superhost rate
-    100.0 * count (distinct case when is_active=1 and host_is_superhost then host_id end) 
+    100.0 * coalesce(count (distinct case when is_active=1 and host_is_superhost then host_id end), 0)
     / nullif(count(distinct case when is_active=1 then host_id end),0) as superhost_rate,
 
     --  Average of review_scores_rating for active listings

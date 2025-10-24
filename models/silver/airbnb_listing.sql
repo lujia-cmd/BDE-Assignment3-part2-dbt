@@ -1,10 +1,10 @@
 {{ log(">> YM=" ~ var('year_month'), info=True) }}
 
 {{ config(
-  materialized='incremental',
-  unique_key='listing_month_id',
-  incremental_strategy='delete+insert',
-  on_schema_change='sync_all_columns'
+    materialized='incremental',
+    unique_key='listing_month_id',
+    incremental_strategy='delete+insert',
+    on_schema_change='sync_all_columns'
 ) }}
 
 with del as (
