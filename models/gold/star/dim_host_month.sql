@@ -1,6 +1,6 @@
 {{ config(materialized='table',
     post_hook=[
-      "create index if not exists {{ this.name }}_range on {{ this }} (host_id, valid_from, valid_to)",
+      "create index if not exists {{ this.name }}_range on {{ this }} (host_id, month_from, month_to)",
       "analyze {{ this }}"
     ]
 ) }}
@@ -17,7 +17,7 @@ with snapshot_host as (
 )
 
 select
-{{ dbt_utils.generate_surrogate_key(['host_id',"to_char(valid_from,'YYYY-MM')"]) }} as host_month_id,
+{{ dbt_utils.generate_surrogate_key(['host_id',"month_from')"]) }} as host_month_id,
 host_id,
 host_name,
 host_since,
