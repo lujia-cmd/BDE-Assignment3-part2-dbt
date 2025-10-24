@@ -7,7 +7,7 @@
         strategy='timestamp',
         updated_at='scraped_month',
         post_hook=[
-            "create index if not exists {{ this.name }}_uk on {{ this }} (host_id)",
+            "create index if not exists {{ this.name }}_uk on {{ this }} (property_key)",
             "analyze {{ this }}"
         ]
     )
@@ -46,4 +46,5 @@ property_key, property_type, room_type, accommodates, scraped_month
 from dedup_month
 
 {% endsnapshot %}
+
 
