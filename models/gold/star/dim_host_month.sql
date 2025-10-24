@@ -14,6 +14,8 @@ with snapshot_host as (
     date_trunc('month', dbt_valid_from)::date as month_from,
     date_trunc('month', dbt_valid_to)::date as month_to
     from {{ ref('host_snapshot') }}
+    where host_id is not null
+    and dbt_valid_from is not null
 )
 
 select
@@ -25,4 +27,3 @@ host_is_superhost,
 month_from, 
 month_to
 from snapshot_host
-
