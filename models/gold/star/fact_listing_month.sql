@@ -18,16 +18,14 @@ with base as (
     to_date(year_month || '-01','YYYY-MM-DD')::date as month_date,
     listing_neighbourhood,
     host_id,
-    property_type,
-    room_type,
+    coalesce(nullif(trim(property_type),''), 'Unknown') as property_type,
+    coalesce(nullif(trim(room_type),''), 'Unknown') as room_type,
     accommodates,
     price,
     availability_30,
     case when has_availability then 1 else 0 end as is_active
     from {{ ref('airbnb_listing') }}
-    {% if is_incremental() %}
     where year_month = '{{ var("year_month") }}'
-    {% endif %}
 ),
 
 -- Suburb to LGA: only one mapping is kept for the same suburb
@@ -99,6 +97,7 @@ final as (
 )
 
 select * from final
+
 
 
 
