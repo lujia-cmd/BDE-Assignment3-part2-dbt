@@ -4,7 +4,7 @@
         target_schema=target.schema, 
         unique_key='host_id',
         strategy='timestamp',
-        updated_at='scraped_date::timestamp',
+        updated_at='scraped_date',
         post_hook=[
             "create index if not exists {{ this.name }}_uk on {{ this }} (host_id)",
             "analyze {{ this }}"
@@ -26,5 +26,6 @@ scraped_date::timestamp as scraped_date
 from {{ ref('airbnb_listing') }} l
 join latest using (host_id, scraped_date)
 {% endsnapshot %}
+
 
 
