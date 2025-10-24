@@ -13,7 +13,7 @@ with snapshot_property as (
     room_type,
     accommodates,
     date_trunc('month', dbt_valid_from)::date as month_from,
-    (date_trunc('month', coalesce(dbt_valid_to, '9999-12-31'))+ interval '1 month')::date as month_to
+    date_trunc('month', dbt_valid_to)::date as month_to
     from {{ ref('property_snapshot') }}
 )
     
@@ -26,5 +26,6 @@ accommodates,
 month_from,
 month_to
 from snapshot_property
+
 
 
