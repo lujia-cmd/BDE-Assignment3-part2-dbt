@@ -25,6 +25,9 @@ with base as (
     coalesce(nullif(trim(property_type),''), 'Unknown') as property_type,
     coalesce(nullif(trim(room_type),''), 'Unknown') as room_type,
     accommodates,
+    {{ dbt_utils.generate_surrogate_key([
+      "coalesce(nullif(trim(property_type),''), 'Unknown')", "coalesce(nullif(trim(room_type),''), 'Unknown')",
+      "accommodates::text"]) }} as property_key,
     price,
     availability_30,
     case when has_availability then 1 else 0 end as is_active
@@ -99,5 +102,6 @@ final as (
 )
 
 select * from final
+
 
 
