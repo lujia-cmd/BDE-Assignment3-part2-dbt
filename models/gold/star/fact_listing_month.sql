@@ -3,11 +3,17 @@
     unique_key=['listing_id', 'year_month'],
     incremental_strategy='delete+insert',
     on_schema_change='append_new_columns',
+    pre_hook=[
+       "{% if execute %}{% set rel = adapter.get_relation(database=this.database, schema=this.schema, identifier=this.identifier) %}{% if rel %}delete from {{ this }} where year_month = '{{ var(\"year_month\") }}'{% endif %}{% endif %}"
+    ],
     post_hook=[
         "analyze {{ this }}",
         "create index if not exists {{ this.name }}_ym on {{ this }} (year_month)",
+        "create index if not exists {{ this.name }}_md on {{ this }} (month_date)",
         "create index if not exists {{ this.name }}_lid on {{ this }} (listing_id)",
-        "create index if not exists {{ this.name }}_md on {{ this }} (month_date)"
+        "create index if not exists {{ this.name }}_hm  on {{ this }} (host_month_id)",
+        "create index if not exists {{ this.name }}_pm  on {{ this }} (property_month_id)",
+        "create index if not exists {{ this.name }}_sk  on {{ this }} (suburb_key)"
     ]
 ) }}
 
@@ -27,7 +33,7 @@ with base as (
     {{ dbt_utils.generate_surrogate_key([
         "coalesce(nullif(trim(property_type),''), 'Unknown')", "coalesce(nullif(trim(room_type),''), 'Unknown')",
         "accommodates::text"]) }} as property_key,
-    price,
+    (price)::numeric as price,
     availability_30,
     case when has_availability = 't' then 1 else 0 end as is_active,
     listing_neighbourhood
@@ -67,4 +73,5 @@ from base b
 
 left join host_m h on b.host_id = h.host_id and b.month_date = h.month_from
 left join prop_m p on b.property_key= p.property_key and b.month_date = p.month_from
+
 left join suburb_m s on s.suburb_name= b.listing_neighbourhood
