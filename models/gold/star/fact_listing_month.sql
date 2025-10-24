@@ -66,9 +66,7 @@ joined as (
 
     -- SCD2: Interval concatenation property dimension (match by property + interval)
     left join {{ ref('dim_property_month') }} p
-    on p.property_type = b.property_type
-    and p.room_type= b.room_type
-    and p.accommodates = b.accommodates
+    on p.property_key = {{ dbt_utils.generate_surrogate_key(['b.property_type','b.room_type','b.accommodates::text']) }}
     and b.month_date >= p.month_from
     and b.month_date < p.month_to
 
@@ -101,3 +99,4 @@ final as (
 )
 
 select * from final
+
