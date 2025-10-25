@@ -7,9 +7,9 @@ nullif(trim("Tot_P_M"), '')::int as tot_p_m,
 nullif(trim("Tot_P_F"), '')::int as tot_p_f,
 nullif(trim("Tot_P_P"), '')::int as tot_p_p,
 
-nullif(trim("Age_0_4_yr_M"), '')::int  as age_0_4_yr_m,
-nullif(trim("Age_0_4_yr_F"), '')::int  as age_0_4_yr_f,
-nullif(trim("Age_0_4_yr_P"), '')::int  as age_0_4_yr_p,
+nullif(trim("Age_0_4_yr_M"), '')::int as age_0_4_yr_m,
+nullif(trim("Age_0_4_yr_F"), '')::int as age_0_4_yr_f,
+nullif(trim("Age_0_4_yr_P"), '')::int as age_0_4_yr_p,
 
 nullif(trim("Age_5_14_yr_M"), '')::int as age_5_14_yr_m,
 nullif(trim("Age_5_14_yr_F"), '')::int as age_5_14_yr_f,
@@ -148,4 +148,5 @@ nullif(trim("Count_Persons_other_dwgs_F"), '')::int as count_persons_other_dwgs_
 nullif(trim("Count_Persons_other_dwgs_P"), '')::int as count_persons_other_dwgs_p
 
 from {{ source('bronze','census_g01') }}
+
 where "LGA_CODE_2016" is not null
